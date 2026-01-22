@@ -1,8 +1,29 @@
+import os
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain import hub
-
 from tools import web_search, write_report
+from dotenv import load_dotenv
+load_dotenv()
+
+confidence_llm = ChatOpenAI(
+    model="gpt-4o-mini",
+    temperature=0
+)
+
+def evaluate_confidence(collected_info: str) -> float:
+    prompt = f"""
+You are evaluating whether enough information has been collected
+to write a complete report.
+
+Collected information:
+{collected_info}
+
+Rate confidence from 0 to 1.
+Return ONLY a number.
+"""
+    response = confidence_llm.invoke(prompt)
+    return float(response.content.strip())
 
 def build_agent():
     llm = ChatOpenAI(

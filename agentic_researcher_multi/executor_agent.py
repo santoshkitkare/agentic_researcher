@@ -2,10 +2,35 @@ import os
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_react_agent, AgentExecutor
-from langchain import hub
-from tools import web_search, write_report
+from langchain.prompts import PromptTemplate
+
+from tools import write_report
+from mcp_tools import web_search
 
 load_dotenv()
+
+EXECUTOR_PROMPT = PromptTemplate.from_template("""
+You are an Executor Agent.
+
+You execute ONE task at a time.
+
+AVAILABLE TOOLS:
+{tools}
+
+Tool names:
+{tool_names}
+
+CRITICAL TOOL RULES:
+- NEVER call tools using parentheses
+- ALWAYS use:
+  Action: web_search
+  Action Input: <query>
+
+TASK:
+{input}
+
+{agent_scratchpad}
+""")
 
 def build_executor(include_writer=False):
     llm = ChatOpenAI(
@@ -16,19 +41,16 @@ def build_executor(include_writer=False):
     tools = [web_search]
     if include_writer:
         tools.append(write_report)
-        
-    prompt = hub.pull("hwchase17/react")
 
     agent = create_react_agent(
         llm=llm,
         tools=tools,
-        prompt=prompt
+        prompt=EXECUTOR_PROMPT
     )
 
     return AgentExecutor(
         agent=agent,
         tools=tools,
         verbose=True,
-        max_iterations=3
+        max_iterations=4
     )
-

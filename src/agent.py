@@ -1,27 +1,30 @@
-class ResearchAgent:
-    def __init__(self, llm):
-        self.llm = llm
-        self.memory = []
+from langchain_openai import ChatOpenAI
+from langchain.agents import create_react_agent, AgentExecutor
+from langchain import hub
 
-    def decide(self, goal: str, observation: str) -> str:
-        prompt = f"""
-You are an autonomous research agent.
+from tools import web_search, write_report
 
-GOAL:
-{goal}
+def build_agent():
+    llm = ChatOpenAI(
+        model="gpt-4o-mini",
+        temperature=0
+    )
 
-PREVIOUS OBSERVATION:
-{observation}
+    tools = [web_search, write_report]
 
-Decide the next action.
+    prompt = hub.pull("hwchase17/react")
 
-You must respond with EXACTLY one of the following formats:
+    agent = create_react_agent(
+        llm=llm,
+        tools=tools,
+        prompt=prompt
+    )
 
-SEARCH: <search query>
-WRITE: <final markdown report>
-FINISH
-"""
-        return self.llm(prompt)
+    agent_executor = AgentExecutor(
+        agent=agent,
+        tools=tools,
+        verbose=True,
+        max_iterations=5
+    )
 
-    def observe(self, result: str):
-        self.memory.append(result)
+    return agent_executor

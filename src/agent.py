@@ -25,6 +25,32 @@ Return ONLY a number.
     response = confidence_llm.invoke(prompt)
     return float(response.content.strip())
 
+reflection_llm = ChatOpenAI(
+    model="gpt-4o-mini",
+    temperature=0
+)
+
+def reflect_on_progress(collected_info: str, goal: str) -> str:
+    prompt = f"""
+You are an AI reviewer.
+
+GOAL:
+{goal}
+
+CURRENT COLLECTED INFORMATION:
+{collected_info}
+
+Critically analyze the progress.
+Answer concisely:
+- What is missing?
+- What is weak or unclear?
+- What should be done next?
+
+Return a short reflection.
+"""
+    response = reflection_llm.invoke(prompt)
+    return response.content.strip()
+
 def build_agent():
     llm = ChatOpenAI(
         model="gpt-4o-mini",

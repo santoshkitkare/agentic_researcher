@@ -1,4 +1,4 @@
-from agent import build_agent, evaluate_confidence
+from agent import build_agent, evaluate_confidence, reflect_on_progress
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -19,11 +19,19 @@ for step in range(5):
 
     result = agent.invoke({"input": GOAL})
     output = result["output"]
-
     collected_info += "\n" + output
 
+    # 🔍 Reflection step
+    reflection = reflect_on_progress(collected_info, GOAL)
+    print("\n🪞 Reflection:")
+    print(reflection)
+
+    # Append reflection to context
+    collected_info += f"\nREFLECTION:\n{reflection}"
+
+    # 📊 Confidence check
     confidence = evaluate_confidence(collected_info)
-    print(f"Confidence score: {confidence}")
+    print(f"\nConfidence score: {confidence}")
 
     if confidence >= CONFIDENCE_THRESHOLD:
         print("\n✅ Confidence threshold reached. Stopping agent.")
